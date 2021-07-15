@@ -543,7 +543,7 @@ def Read_H3_Grid_Lv8_Province_PAT(province):
     return dfout
 
 ##### Get popolation 5km2 area
-def GetPopulation_Around_CenterGrid(province,hex_id):
+def GetPopulation_Around_CenterGrid(dfDummy,hex_id):
        hexagons1=[]
        hexagons1.append(hex_id)
        # k_ring 2nd argument: 1,2,3,....  is the level of neighbor grids around center grid
@@ -554,8 +554,6 @@ def GetPopulation_Around_CenterGrid(province,hex_id):
 
        dfHex=pd.DataFrame(hexagons1, columns=['hex_id'])
        #print(' --- ',dfHex)
-       dfDummy=Read_H3_Grid_Lv8_Province_PAT(province) 
-       #dfDummy=Read_Location_Population(province)
        if(len(dfDummy)>0):
            #print(' merge ')
            dfHex=dfHex.merge(dfDummy, how="left", on=["hex_id"])
@@ -578,7 +576,7 @@ def GetPopulation_Around_CenterGrid(province,hex_id):
        else:
            #print(' not merge ')
            population=str(0)+'_'+str(0)+'_'+str(0)+"_"+str(0)+"_"+str(0)+"_"+str(0)+"_"+str(0)
-       del dfDummy, dfHex, hexagons1
+       del dfHex, hexagons1
        return population
 
 def Assign_Population_General_CenterGrid(x):
@@ -1324,7 +1322,8 @@ for file_name in filenameList:  #[:2]:
     #print(' dfHex  : ',dfHex)    
 
     print(' 3. Population on 5km2 area ')
-    dfHex['Population_C']=dfHex.progress_apply(lambda x:GetPopulation_Around_CenterGrid(province,x['hex_id']),axis=1)
+    dfShop=Read_H3_Grid_Lv8_Province_PAT(province)     
+    dfHex['Population_C']=dfHex.progress_apply(lambda x:GetPopulation_Around_CenterGrid(dfShop,x['hex_id']),axis=1)
     dfHex['population_general_5']=dfHex.progress_apply(lambda x: Assign_Population_General_CenterGrid(x['Population_C']),axis=1)
     dfHex['population_youth_5']=dfHex.progress_apply(lambda x: Assign_Population_Youth_CenterGrid(x['Population_C']),axis=1)
     dfHex['population_elder_5']=dfHex.progress_apply(lambda x: Assign_Population_Elder_CenterGrid(x['Population_C']),axis=1)
@@ -1398,7 +1397,7 @@ for file_name in filenameList:  #[:2]:
 
 
 conn.close()
-del dfDummy, dfHex, dfDummy_2, mainDf, dfPAT
+del dfDummy, dfHex, dfDummy_2, mainDf, dfPAT, dfShop
 del includeList, hexagons, totalList, testlist, hexList, filenameList, previousCompleteList
 ###****************************************************************
 end_datetime = datetime.now()
